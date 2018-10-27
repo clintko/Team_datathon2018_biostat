@@ -1,0 +1,124 @@
+---
+title: "Benji_Datathon_Work"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+first_session <- read_csv(file = "/home/benji/scratch/dataset/first_session.csv", n_max = 10000)
+```
+
+```{r}
+user_engagement <- read_csv(file = "/home/benji/scratch/dataset/user_engagement.csv", n_max = 10000)
+
+```
+```{r}
+user_engagement %>% group_by(logged_in_count) %>% summarize(n())
+```
+```{r}
+user_engagement %>% head
+```
+
+
+```{r}
+user_engagement[, 4:34] %>% head
+```
+
+```{r}
+user_engagement %>% select(4:34) %>% cor
+```
+
+
+```{r}
+user_profile <- read_csv(file = "/home/benji/scratch/dataset/user_profile.csv")
+```
+
+```{r}
+engage_overall <- read_csv("/home/benji/scratch/dataset/engage_overall_apply.csv") 
+```
+
+```{r}
+inner_join(x = user_profile, y = engage_overall, by = "user_id") -> user_profile_engage_overall
+```
+
+```{r}
+user_profile_engage_overall %>% filter(click_count_credit_card.1 > 0) %>% select(click_count_credit_card.1) -> y
+user_profile_engage_overall %>% filter(click_count_credit_card.1 > 0) %>% select(8:35, 37) -> x
+
+temp <- 1
+name <- c()
+cor <- c()
+pval <- c()
+for(i in x){
+  test <- cor.test(i, unlist(y))
+  name <- c(name, colnames(x)[temp])
+  cor <- c(cor, test$estimate)
+  pval <- c(pval, test$p.value)
+  
+  temp <- temp + 1
+  
+}
+
+correlations <- data.frame(name, cor, pval)
+```
+
+
+```{r}
+
+#correlations %>% filter(pval >= .05) %>% select(name)
+
+correlations %>% filter(pval < 0.05) %>%
+  ggplot(mapping = aes(name, cor)) + geom_point() + ggtitle("Correlation with
+                                                            Click_Apply_Credit_Cards") +
+  theme(axis.text.x = element_text(angle = 90)) + ylab("Correlation") + xlab("Variable")
+```
+
+
+```{r}
+ggplot(data = user_profile_engage_overall, mapping = aes(x = tradelines_min_days_since_opened, y = click_count_credit_card.1)) + geom_point() + geom_smooth()
+```
+
+
+```{r}
+df = data.frame(x = x, y = y)
+df = df %>% na.omit
+unique(df$x)
+```
+
+```{r}
+summary(aov(y ~ x, data = df))
+```
+
+
+```{r}
+read_csv("/home/benji/scratch/dataset/profile_with_credit_age.csv") -> profile_with_credit_age
+
+inner_join(x = user_profile_engage_overall, y = profile_with_credit_age, by = "user_id") -> user_profile_engage_with_credit_age
+
+```
+
+
+```{r}
+y <- user_profile_engage_with_credit_age$click_count_credit_card.1
+x <- factor(user_profile_engage_with_credit_age$credit_bucket)
+summary(aov(y ~ x))
+```
+
+```{r}
+read_csv("/home/benji/scratch/dataset/engage_overall_apply.csv", n_max = 10000)
+```
+
+
+
+
+
+
+
+
+
+
+
+
